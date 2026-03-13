@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto pb-10">
+    <!-- Header Area -->
+    <div class="mb-6 flex justify-between items-center">
+        <h2 class="text-2xl font-bold dark:text-white">Your Feed</h2>
+        <span class="text-sm text-gray-500 dark:text-gray-400 bg-black/5 px-3 py-1 rounded-full"><i class="fas fa-fire mr-1 text-orange-500"></i> Trending</span>
+    </div>
+
+    <!-- Posts Stream -->
+    <div class="space-y-6">
+        {% for post in posts %}
+        <div class="card-glass p-0 overflow-hidden">
+            <!-- Post Header -->
+            <div class="p-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                <a href="{{ url_for('profile', username=post.username) }}" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 p-[2px]">
+                        {% if post.avatar_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + post.avatar_path) }}" class="w-full h-full rounded-full object-cover border-2 border-white dark:border-gray-900" alt="avatar">
+                        {% else %}
+                            <div class="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                                <i class="fas fa-user text-gray-400 text-sm"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-900 dark:text-white group-hover:text-violet-500 transition-colors">{{ post.display_name }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">@{{ post.username }} • {{ post.created_at | humanize }}</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Post Content -->
+            <a href="{{ url_for('post_detail', post_id=post.id) }}" class="block p-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mb-3 text-sm leading-relaxed">{{ post.content | safe }}</p>
+                {% if post.media_path %}
+                    {% if post.media_path.endswith('.mp4') %}
+                        <video controls class="w-full rounded-xl max-h-96 object-cover mb-3 bg-black/5">
+                            <source src="{{ url_for('static', filename='uploads/' + post.media_path) }}" type="video/mp4">
+                        </video>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' + post.media_path) }}" loading="lazy" class="w-full rounded-xl max-h-96 object-cover mb-3 border border-gray-100 dark:border-white/5" alt="Post media">
+                    {% endif %}
+                {% endif %}
+            </a>
+
+            <!-- Actions Bar -->
+            <div class="bg-gray-50 dark:bg-black/20 p-3 flex items-center gap-6 text-gray-500 dark:text-gray-400 text-sm">
+                <div class="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-white/5">
+                    <form action="{{ url_for('vote_post', post_id=post.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <input type="hidden" name="value" value="1">
+                        <button type="submit" class="p-2 hover:text-green-500 rounded-l-full hover:bg-black/5 dark:hover:bg-white/5 transition-all"><i class="fas fa-arrow-up"></i></button>
+                    </form>
+                    <span class="font-bold min-w-[20px] text-center {% if post.net_votes > 0 %}text-green-500{% elif post.net_votes < 0 %}text-red-500{% endif %}">
+                        {{ post.net_votes }}
+                    </span>
+                    <form action="{{ url_for('vote_post', post_id=post.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <input type="hidden" name="value" value="-1">
+                        <button type="submit" class="p-2 hover:text-red-500 rounded-r-full hover:bg-black/5 dark:hover:bg-white/5 transition-all"><i class="fas fa-arrow-down"></i></button>
+                    </form>
+                </div>
+                <div class="flex items-center gap-6 pt-2">
+                    <button onclick="vote('post', '{{ post.id }}', 1)" class="flex items-center gap-1.5 hover:text-violet-500 transition-colors">
+                        <i class="far fa-heart"></i>
+                        <span class="text-xs font-bold">{{ post.vote_count or 0 }}</span>
+                    </button>
+                    <a href="{{ url_for('post_detail', post_id=post.id) }}" class="flex items-center gap-1.5 hover:text-violet-500 transition-colors">
+                        <i class="far fa-comment"></i>
+                        <span class="text-xs font-bold">{{ post.comment_count or 0 }}</span>
+                    </a>
+                    <button onclick="sharePost('{{ post.id }}')" class="flex items-center gap-1.5 hover:text-violet-500 transition-colors ml-auto">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state-card card-glass">
+            <div class="w-20 h-20 bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center mb-6 pulsate">
+                <i class="fas fa-wind text-3xl text-violet-500"></i>
+            </div>
+            <h3 class="text-xl font-bold dark:text-white mb-2">Your feed is quiet</h3>
+            <p class="text-gray-500 dark:text-gray-400 max-w-xs mb-8">Be the first to share something with the community or explore blogs!</p>
+            <button onclick="document.getElementById('post-modal').classList.remove('hidden')" class="btn-primary">
+                Create First Post
+            </button>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

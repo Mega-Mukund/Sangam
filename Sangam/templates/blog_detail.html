@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto pb-10">
+    <!-- Header/Back Nav -->
+    <div class="my-6 px-2">
+        <a href="{{ url_for('blogs') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-violet-500 transition-colors bg-white/50 dark:bg-black/20 px-4 py-2 rounded-full backdrop-blur-md border border-gray-100 dark:border-white/5 shadow-sm">
+            <i class="fas fa-arrow-left"></i> Back to Blogs
+        </a>
+    </div>
+
+    <!-- Main Blog Card -->
+    <article class="card-glass p-0 overflow-hidden mb-8">
+        <!-- Cover Media -->
+        {% if blog.media_path %}
+            <div class="w-full h-64 md:h-96 bg-black relative">
+                {% if blog.media_path.endswith('.mp4') %}
+                    <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                        <source src="{{ url_for('static', filename='uploads/' + blog.media_path) }}" type="video/mp4">
+                    </video>
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' + blog.media_path) }}" class="w-full h-full object-cover" alt="Blog cover">
+                {% endif %}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            </div>
+        {% endif %}
+
+        <div class="p-6 md:p-10 relative">
+            <!-- Author Floating Badge (if media exists, overlap it slightly) -->
+            <div class="flex items-center gap-4 mb-8 {% if blog.media_path %}-mt-16 relative z-10{% endif %}">
+                <a href="{{ url_for('profile', username=blog.username) }}" class="block p-[3px] bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full shadow-xl">
+                    <div class="w-16 h-16 rounded-full overflow-hidden border-4 border-white dark:border-gray-900 bg-white dark:bg-gray-800">
+                        {% if blog.avatar_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + blog.avatar_path) }}" class="w-full h-full object-cover" alt="avatar">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-user text-gray-400 text-2xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </a>
+                <div class="{% if blog.media_path %}text-white drop-shadow-md{% else %}text-gray-900 dark:text-white{% endif %}">
+                    <a href="{{ url_for('profile', username=blog.username) }}" class="font-bold text-lg hover:underline">{{ blog.display_name }}</a>
+                    <p class="text-sm opacity-80">@{{ blog.username }} • {{ blog.created_at | humanize }}</p>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight dark:text-white mb-8 leading-tight">
+                {{ blog.title }}
+            </h1>
+
+            <!-- Blog Content (Rich Text formatting injected directly) -->
+            <!-- Using the prose class from Tailwind typography if it was loaded, but since CDN is minimal, we rely on core custom tags and Quill's structure -->
+            <div class="prose prose-violet max-w-none dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed ql-editor px-0">
+                <!-- Apply Quill CSS so the bold/italic/code-blocks render exactly as created -->
+                <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+                <style>
+                    /* Fix some Quill resets causing issues in view-only mode */
+                    .ql-editor.px-0 { padding: 0 !important; }
+                    .ql-editor img { max-width: 100%; border-radius: 0.75rem; margin: 1rem 0; }
+                    .ql-editor iframe { max-width: 100%; border-radius: 0.75rem; }
+                    .ql-editor p { margin-bottom: 1rem; }
+                    .ql-editor h1, .ql-editor h2, .ql-editor h3 { color: inherit; font-weight: bold; margin-bottom: 1rem; margin-top: 2rem;}
+                    .ql-syntax { background-color: #1e293b !important; color: #e2e8f0 !important; border-radius: 0.5rem; padding: 1rem; overflow-x: auto; font-family: monospace; }
+                </style>
+                {{ blog.content | safe }}
+            </div>
+            
+            <div class="mt-12 pt-6 border-t border-gray-100 dark:border-white/5 flex justify-between items-center text-gray-500">
+                <button class="flex items-center gap-2 hover:text-violet-500 transition-colors px-4 py-2 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20" onclick="window.scrollTo({top: document.getElementById('comments').offsetTop, behavior: 'smooth'})">
+                    <i class="far fa-comment-dots text-xl"></i>
+                    <span class="font-medium">{{ comments|length }} Comments</span>
+                </button>
+                <button class="flex items-center gap-2 hover:text-violet-500 transition-colors px-4 py-2 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!');">
+                    <i class="fas fa-share-nodes text-xl"></i>
+                    <span class="font-medium">Share</span>
+                </button>
+            </div>
+        </div>
+    </article>
+
+    <!-- Comments Section -->
+    <div id="comments" class="mt-8 px-2">
+        <h3 class="text-2xl font-bold dark:text-white mb-6">Discussion</h3>
+        
+        <!-- Post Comment Form -->
+        <div class="card-glass p-5 mb-8">
+            <form action="{{ url_for('blog_comment', blog_id=blog.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <div class="flex gap-4">
+                    <div class="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800">
+                        {% if g.user and g.user.avatar_path %}
+                        <img src="{{ url_for('static', filename='uploads/' + g.user.avatar_path) }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                            <i class="fas fa-user text-sm"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow">
+                        <textarea name="content" rows="2" class="w-full py-3 px-4 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800 border-transparent focus:border-violet-500 focus:bg-white dark:focus:bg-gray-900 focus:ring-0 text-sm resize-none dark:text-white transition-all shadow-inner placeholder-gray-400" required placeholder="Add to the discussion..."></textarea>
+                        <div class="mt-3 flex justify-end">
+                            <button type="submit" class="btn-primary py-2 px-6 rounded-full text-sm">
+                                Comment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Comments List -->
+        <div class="space-y-6">
+            {% for comment in comments %}
+            <div class="flex gap-4 group">
+                <a href="{{ url_for('profile', username=comment.username) }}" class="w-10 h-10 rounded-full shrink-0 overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm transition-transform group-hover:scale-105">
+                    {% if comment.avatar_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + comment.avatar_path) }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400 text-sm"></i>
+                    </div>
+                    {% endif %}
+                </a>
+                <div class="flex-grow">
+                    <div class="card-glass p-4 inline-block min-w-[50%] max-w-full">
+                        <a href="{{ url_for('profile', username=comment.username) }}" class="font-bold text-sm text-gray-900 dark:text-white hover:text-violet-500 transition-colors">{{ comment.display_name }}</a>
+                        <p class="text-sm dark:text-gray-200 mt-1 whitespace-pre-wrap leading-relaxed">{{ comment.content | safe }}</p>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 ml-2">{{ comment.created_at | humanize }}</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-10 opacity-60">
+                <p class="dark:text-white">No comments yet. Be the first to start the discussion!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

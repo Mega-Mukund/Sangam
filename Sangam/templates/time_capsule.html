@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto pb-10 mt-4">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-500 mb-2">Time Capsules 🧭</h2>
+        <p class="text-gray-500 dark:text-gray-400">Preserve memories for your future self</p>
+    </div>
+
+    <!-- Create Capsule Form -->
+    <div class="card-glass p-6 mb-10 overflow-hidden relative">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl"></div>
+        
+        <h3 class="text-lg font-bold dark:text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-hourglass-start text-violet-500"></i> Bury a Message
+        </h3>
+        <form action="{{ url_for('time_capsule') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <textarea name="content" rows="3" class="input-glass mb-4" placeholder="What do you want to remember?"></textarea>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest">Unlock Date</label>
+                    <input type="date" name="unlock_date" required class="input-glass !py-2" min="{{ now_date }}">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-widest">Add Media</label>
+                    <input type="file" name="media" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100" accept="image/*,video/*">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary w-full">
+                Seal Capsule <i class="fas fa-lock ml-2"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- My Capsules -->
+    <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-6 px-2">Your Vault</h3>
+        
+        <div class="space-y-6">
+            {% for c in capsules %}
+            <div class="card-glass relative overflow-hidden group">
+                {% if not c.is_ready %}
+                <!-- Locked State -->
+                <div class="p-8 text-center bg-black/5 dark:bg-white/5 grayscale pointer-events-none">
+                    <div class="w-16 h-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-gray-100 dark:border-gray-700 shadow-inner">
+                        <i class="fas fa-lock text-gray-300"></i>
+                    </div>
+                    <h4 class="text-gray-400 font-bold mb-1 italic">Locked until {{ c.unlock_date[:10] }}</h4>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">Memories are ripening...</p>
+                </div>
+                {% else %}
+                <!-- Unlocked View -->
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 px-2 py-1 rounded">UNLOCKED</span>
+                        <span class="text-[10px] text-gray-500">Created {{ c.created_at | humanize }}</span>
+                    </div>
+                    
+                    <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed mb-4">{{ c.content }}</p>
+                    
+                    {% if c.media_path %}
+                        <div class="rounded-xl overflow-hidden border border-gray-100 dark:border-white/5">
+                        {% if c.media_path.endswith('.mp4') %}
+                            <video controls class="w-full h-48 object-cover"><source src="{{ url_for('static', filename='uploads/' + c.media_path) }}" type="video/mp4"></video>
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/' + c.media_path) }}" class="w-full h-48 object-cover">
+                        {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Date badge -->
+                <div class="absolute top-0 right-0 px-3 py-1 bg-violet-500 text-white text-[10px] font-bold rounded-bl-xl shadow-lg">
+                    Unlock: {{ c.unlock_date[:10] }}
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-20 opacity-40">
+                <i class="fas fa-archive text-4xl mb-4"></i>
+                <p>No capsules buried yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

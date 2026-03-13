@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sangam 🪷</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        violetapp: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        // Inline dark mode check to prevent flicker
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</head>
+<body class="antialiased transition-colors duration-300">
+
+    <div class="app-container min-h-screen relative pb-20">
+        <!-- Top Header -->
+        <header class="sticky top-0 z-50 glass px-4 py-4 flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold tracking-tight drop-shadow-sm">
+                <a href="{{ url_for('feed') }}" class="hover:opacity-80 transition-opacity flex items-center gap-1.5">
+                    <span class="text-gradient tracking-wider">SANGAM</span> <span class="text-2xl drop-shadow-md">🪷</span>
+                </a>
+            </h1>
+            <div class="flex flex-grow max-w-[150px] sm:max-w-md mx-2 sm:mx-4">
+                <form action="{{ url_for('search') }}" method="GET" class="relative w-full">
+                    <input type="text" name="q" placeholder="Search..." class="w-full bg-black/5 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-full py-1.5 pl-8 pr-3 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500/50 dark:text-white transition-all">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                </form>
+            </div>
+
+            <div class="flex items-center gap-4">
+                {% if not g.user %}
+                <div class="flex items-center gap-2 mr-1">
+                    <a href="{{ url_for('login') }}" class="text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-violet-500 transition-colors px-2 py-1">Log In</a>
+                    <a href="{{ url_for('register') }}" class="btn-primary py-1.5 px-4 rounded-full text-sm font-bold shadow-sm">Sign Up</a>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-3 mr-1">
+                    <form action="{{ url_for('delete_account') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete your account? All your posts and blogs will be permanently deleted. This cannot be undone.');">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <button type="submit" class="text-xs font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors flex items-center gap-1 group">
+                            <i class="fas fa-trash-alt group-hover:scale-110 transition-transform"></i> <span class="hidden sm:inline">Delete Acc</span>
+                        </button>
+                    </form>
+                    <a href="{{ url_for('logout') }}" class="text-xs font-bold text-gray-700 dark:text-gray-200 hover:text-violet-500 transition-colors flex items-center gap-1 group">
+                        <i class="fas fa-sign-out-alt group-hover:scale-110 transition-transform"></i> <span class="hidden sm:inline">Log Out</span>
+                    </a>
+                </div>
+                {% endif %}
+                <button id="theme-toggle" class="theme-toggle p-3 rounded-2xl bg-white/10 dark:bg-black/20 text-violet-600 dark:text-fuchsia-400 transition-all border-2 border-violet-500/30 shadow-[0_0_15px_rgba(139,92,246,0.2)] group flex items-center gap-2" title="Toggle Enlightenment Mode">
+                    <i id="theme-icon" class="fas fa-moon group-hover:rotate-45 transition-transform text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest hidden md:inline">Mode</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        <div class="px-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="mb-4 p-4 rounded-xl {% if category == 'error' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50{% else %}bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800/50{% endif %}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main Content -->
+        <main class="px-4 pb-8">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Bottom Navigation Navbar (Logos) -->
+        {% if g.user %}
+        <nav class="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/20 dark:border-white/5 pb-safe pb-2">
+            <div class="max-w-[800px] mx-auto flex justify-around items-center pt-3 pb-2 px-2">
+                <a href="{{ url_for('feed') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'feed' %}active{% endif %}" title="Feed">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-home text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Feed</span>
+                </a>
+                <a href="{{ url_for('blogs') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'blogs' or request.endpoint == 'blog_detail' or request.endpoint == 'create_blog' %}active{% endif %}" title="Blogs">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-feather-alt text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Blogs</span>
+                </a>
+                <a href="{{ url_for('friends') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'friends' %}active{% endif %}" title="Friends">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-user-friends text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Friends</span>
+                </a>
+                <!-- Add Button -->
+                <div class="-mt-8">
+                    <button class="bg-gradient-to-tr from-violet-600 to-fuchsia-500 rounded-2xl w-14 h-14 flex items-center justify-center text-white shadow-lg shadow-violet-500/30 hover:scale-105 active:scale-95 transition-all" onclick="document.getElementById('post-modal').classList.remove('hidden')">
+                        <i class="fas fa-plus text-2xl"></i>
+                    </button>
+                </div>
+                <a href="{{ url_for('notifications') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'notifications' %}active{% endif %} relative" title="Alerts">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-bell text-xl"></i>
+                        {% if g.unread_count and g.unread_count > 0 %}
+                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                        {% endif %}
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Alerts</span>
+                </a>
+                <a href="{{ url_for('time_capsule') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'time_capsule' %}active{% endif %}" title="Vault">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-hourglass-start text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Vault</span>
+                </a>
+                <a href="{{ url_for('profile', username=g.user.username) }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'profile' and request.view_args.username == g.user.username %}active{% endif %}" title="Profile">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-user-circle text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">Profile</span>
+                </a>
+                <a href="{{ url_for('about') }}" class="flex flex-col items-center nav-item {% if request.endpoint == 'about' %}active{% endif %}" title="About">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mb-1 transition-all hover:scale-110 shadow-sm">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase tracking-tighter">About</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Post Creation Modal -->
+        <div id="post-modal" class="fixed inset-0 z-[100] hidden bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center transition-opacity">
+            <div class="card-glass w-full sm:w-[500px] rounded-t-3xl sm:rounded-3xl p-6 transform transition-transform">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold dark:text-white">Create Post</h3>
+                    <button onclick="document.getElementById('post-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form action="{{ url_for('create_post') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <textarea name="content" rows="4" class="input-glass mb-4 resize-none" placeholder="What's on your mind? Use #tags..."></textarea>
+                    
+                    <div class="flex items-center justify-between mt-2">
+                        <label class="cursor-pointer text-violet-500 hover:text-violet-600 transition-colors flex items-center gap-2">
+                            <i class="fas fa-image text-xl"></i>
+                            <span class="text-sm font-medium">Add Media</span>
+                            <input type="file" name="media" class="hidden" accept="image/*,video/*" />
+                        </label>
+                        <button type="submit" class="btn-primary py-2 px-6 rounded-full text-sm">
+                            Post <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- Bottom Navigation Navbar for Logged Out Users -->
+        <nav class="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/20 dark:border-white/5 pb-safe pb-4 pt-4 lg:hidden">
+            <div class="max-w-[600px] mx-auto flex justify-center gap-4 px-4">
+                <a href="{{ url_for('login') }}" class="w-full text-center py-2.5 px-4 rounded-xl font-bold bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 hover:border-violet-500 transition-colors shadow-sm">
+                    Log In
+                </a>
+                <a href="{{ url_for('register') }}" class="w-full text-center py-2.5 px-4 rounded-xl font-bold btn-primary shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                    Join Sangam
+                </a>
+            </div>
+        </nav>
+        {% endif %}
+
+        <!-- Floating SOS / Quick Exit Button -->
+        <a href="{{ url_for('sos') }}" class="fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-[90] w-12 h-12 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white font-bold shadow-[0_0_15px_rgba(239,68,68,0.5)] border-2 border-white dark:border-gray-900 transition-transform hover:scale-110 active:scale-95 group" title="Safety & Support">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="absolute right-14 bg-red-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Safety & Support</span>
+        </a>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Hide modal when clicking outside -->
+    <script>
+        const postModal = document.getElementById('post-modal');
+        if (postModal) {
+            postModal.addEventListener('click', (e) => {
+                if(e.target === postModal) {
+                    postModal.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+kill
+murder
+suicide
+terrorist
+bomb
+nazi

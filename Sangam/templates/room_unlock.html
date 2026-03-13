@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh]">
+    <div class="card-glass w-full max-w-sm p-8 text-center text-gray-800 dark:text-gray-200">
+        
+        <div class="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center mx-auto mb-6 shadow-inner text-4xl text-gray-400">
+            <i class="fas fa-lock"></i>
+        </div>
+        
+        <h2 class="text-2xl font-bold mb-2">Private Room</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-8"><span class="font-bold text-gray-900 dark:text-white">{{ room.name }}</span> requires an access code to join.</p>
+
+        <form action="{{ url_for('room_chat', room_id=room.id) }}" method="POST" class="space-y-4 text-left">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <div>
+                <label class="block text-sm font-bold mb-2 ml-1">Access Code</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                        <i class="fas fa-key"></i>
+                    </span>
+                    <input type="text" name="access_code" required class="input-glass pl-10" placeholder="Enter secret code">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-primary w-full mt-2">
+                Unlock Room <i class="fas fa-unlock ml-2"></i>
+            </button>
+        </form>
+        
+        <a href="{{ url_for('rooms') }}" class="block mt-6 text-sm text-violet-500 hover:text-violet-600 hover:underline">Return to Rooms List</a>
+    </div>
+</div>
+{% endblock %}

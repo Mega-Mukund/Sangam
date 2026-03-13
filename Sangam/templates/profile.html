@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto pb-10">
+    <!-- Profile Header Cover -->
+    <div class="h-32 rounded-b-3xl bg-gradient-to-r from-violet-600 to-fuchsia-500 relative mb-16 shadow-lg">
+        <!-- Avatar -->
+        <div class="absolute -bottom-12 left-6 w-24 h-24 rounded-full border-4 border-[var(--app-bg-light)] dark:border-[var(--app-bg-dark)] bg-white dark:bg-gray-800 overflow-hidden z-10 shadow-xl">
+            {% if profile_user.avatar_path %}
+            <img src="{{ url_for('static', filename='uploads/' + profile_user.avatar_path) }}" class="w-full h-full object-cover" alt="Avatar">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center text-3xl text-gray-300">
+                <i class="fas fa-user"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if g.user and g.user.id == profile_user.id %}
+        <!-- Edit Profile Trigger -->
+        <button onclick="document.getElementById('edit-modal').classList.remove('hidden')" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur text-white px-4 py-1.5 rounded-full text-sm font-medium transition">
+            <i class="fas fa-pen mr-2"></i>Edit
+        </button>
+        {% else %}
+        <!-- Message Action -->
+        <a href="{{ url_for('direct_chat', username=profile_user.username) }}" class="absolute top-4 right-4 bg-white hover:bg-gray-100 text-violet-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-md transition">
+            <i class="fas fa-paper-plane mr-2"></i>Message
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Profile Info -->
+    <div class="px-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            {{ profile_user.display_name }}
+            {% if profile_user.is_private == 1 %}
+                <i class="fas fa-lock text-sm text-gray-400" title="Private Account"></i>
+            {% endif %}
+        </h2>
+        <p class="text-gray-500 font-medium">@{{ profile_user.username }}</p>
+        
+        <div class="mt-4">
+            <p class="text-gray-800 dark:text-gray-200">{{ profile_user.bio or 'No bio yet 🪷' }}</p>
+            
+            <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                {% if g.user and g.user.id == profile_user.id %}
+                    <!-- My Profile -->
+                {% else %}
+                    {% if friendship_status == 1 %}
+                        <div class="px-6 py-2 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 font-bold text-sm flex items-center gap-2">
+                            <i class="fas fa-check-circle"></i> Friends
+                        </div>
+                    {% elif friendship_status == 0 %}
+                        <div class="px-6 py-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-sm">Request Pending</div>
+                    {% else %}
+                        <form action="{{ url_for('request_friend', username=profile_user.username) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                            <button type="submit" class="btn-primary py-2 px-6 rounded-full text-sm">Connect</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="flex gap-4 mt-4 text-sm text-gray-500 font-medium">
+            <span><i class="far fa-calendar-alt mr-1"></i>Joined {{ profile_user.created_at | humanize }}</span>
+        </div>
+    </div>
+    
+    <hr class="border-gray-200 dark:border-gray-800 mb-6 mx-4">
+
+    <!-- Posts Feed -->
+    <div class="px-2">
+        <h3 class="font-bold text-lg mb-4 px-2 dark:text-white">Posts</h3>
+        
+        {% if can_view %}
+            <div class="space-y-6">
+                {% for post in posts %}
+                <div class="card-glass p-0 overflow-hidden">
+                    <div class="p-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 p-[2px]">
+                                {% if post.avatar_path %}
+                                    <img src="{{ url_for('static', filename='uploads/' + post.avatar_path) }}" class="w-full h-full rounded-full object-cover border-2 border-white dark:border-gray-900">
+                                {% else %}
+                                    <div class="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                                        <i class="fas fa-user text-gray-400 text-sm"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm text-gray-900 dark:text-white">{{ post.display_name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">@{{ post.username }} • {{ post.created_at | humanize }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('post_detail', post_id=post.id) }}" class="block p-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mb-3 text-sm leading-relaxed">{{ post.content | safe }}</p>
+                        {% if post.media_path %}
+                            {% if post.media_path.endswith('.mp4') %}
+                                <video controls class="w-full rounded-xl max-h-96 object-cover mb-3 bg-black/5">
+                                    <source src="{{ url_for('static', filename='uploads/' + post.media_path) }}" type="video/mp4">
+                                </video>
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' + post.media_path) }}" loading="lazy" class="w-full rounded-xl max-h-96 object-cover mb-3" alt="Post media">
+                            {% endif %}
+                        {% endif %}
+                    </a>
+
+                    <!-- Actions -->
+                    <div class="bg-gray-50 dark:bg-black/20 p-3 flex items-center gap-6 text-gray-500 dark:text-gray-400 text-sm border-t border-gray-100 dark:border-white/5">
+                        <div class="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-full shadow-sm border border-gray-100 dark:border-white/5">
+                            <form action="{{ url_for('vote_post', post_id=post.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                                <input type="hidden" name="value" value="1">
+                                <button type="submit" class="p-2 hover:text-green-500 rounded-l-full hover:bg-black/5 dark:hover:bg-white/5"><i class="fas fa-arrow-up"></i></button>
+                            </form>
+                            <span class="font-bold min-w-[20px] text-center {% if post.net_votes > 0 %}text-green-500{% elif post.net_votes < 0 %}text-red-500{% endif %}">
+                                {{ post.net_votes }}
+                            </span>
+                            <form action="{{ url_for('vote_post', post_id=post.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                                <input type="hidden" name="value" value="-1">
+                                <button type="submit" class="p-2 hover:text-red-500 rounded-r-full hover:bg-black/5 dark:hover:bg-white/5"><i class="fas fa-arrow-down"></i></button>
+                            </form>
+                        </div>
+                        
+                        <a href="{{ url_for('post_detail', post_id=post.id) }}" class="flex items-center gap-2 hover:text-violet-500 transition-colors">
+                            <i class="far fa-comment"></i>
+                            <span>{{ post.comment_count }}</span>
+                        </a>
+                        <button onclick="sharePost({{ post.id }})" class="flex items-center gap-1.5 hover:text-violet-500 transition-colors ml-auto">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-10 opacity-60">
+                    <i class="fas fa-seedling text-3xl mb-3 text-violet-400"></i>
+                    <p class="dark:text-white">User hasn't posted anything yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card-glass p-8 text-center flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center mb-4 text-2xl text-gray-400">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white mb-2">This account is private</h3>
+                <p class="text-gray-500 text-sm max-w-xs">Only approved followers can see what @{{ profile_user.username }} shares.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Edit Profile Modal -->
+    {% if g.user and g.user.id == profile_user.id %}
+    <div id="edit-modal" class="fixed inset-0 z-[100] hidden bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center transition-opacity">
+        <div class="card-glass w-full sm:w-[500px] rounded-t-3xl sm:rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h3 class="text-xl font-bold dark:text-white">Edit Profile</h3>
+                <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form action="{{ url_for('profile', username=g.user.username) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                <div>
+                    <label class="block text-sm font-bold mb-2 dark:text-gray-300">Avatar Image</label>
+                    <input type="file" name="avatar" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 dark:file:bg-violet-900/30 dark:file:text-violet-400 cursor-pointer">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold mb-2 dark:text-gray-300">Display Name</label>
+                    <input type="text" name="display_name" value="{{ profile_user.display_name }}" class="input-glass" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold mb-2 dark:text-gray-300">Bio</label>
+                    <textarea name="bio" rows="3" class="input-glass resize-none" placeholder="Tell the world about yourself...">{{ profile_user.bio or '' }}</textarea>
+                </div>
+                
+                <div class="flex items-center py-4 border-t border-gray-100 dark:border-gray-800">
+                    <input type="checkbox" id="is_private" name="is_private" value="1" class="w-4 h-4 text-violet-600 bg-gray-100 border-gray-300 rounded focus:ring-violet-500 dark:focus:ring-violet-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" {% if profile_user.is_private == 1 %}checked{% endif %}>
+                    <label for="is_private" class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Private Account</label>
+                </div>
+                
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

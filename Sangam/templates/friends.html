@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto pb-10">
+    <div class="flex items-center gap-3 mb-8 px-2 mt-4">
+        <h2 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-500">
+            Connections
+        </h2>
+    </div>
+
+    <!-- Pending Requests -->
+    {% if requests %}
+    <div class="mb-10">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 px-2">Pending Requests ({{ requests|length }})</h3>
+        <div class="space-y-3">
+            {% for req in requests %}
+            <div class="card-glass p-4 flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-violet-200 dark:border-violet-900">
+                        {% if req.avatar_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + req.avatar_path) }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-900 dark:text-white">{{ req.display_name }}</p>
+                        <p class="text-xs text-gray-500">@{{ req.username }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <form action="{{ url_for('accept_friend', username=req.username) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-violet-500/30 transition-all hover:scale-110 active:scale-95">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </form>
+                    <form action="{{ url_for('reject_friend', username=req.username) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <button type="submit" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:bg-red-500 hover:text-white hover:scale-110 active:scale-95">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Friends List -->
+    <div>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4 px-2">My Friends ({{ friends|length }})</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for friend in friends %}
+            <a href="{{ url_for('profile', username=friend.username) }}" class="card-glass p-4 flex items-center gap-3 hover:border-violet-400 transition-all group">
+                <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100 dark:border-white/5">
+                    {% if friend.avatar_path %}
+                        <img src="{{ url_for('static', filename='uploads/' + friend.avatar_path) }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-user text-xs"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="overflow-hidden">
+                    <p class="font-bold text-sm text-gray-900 dark:text-white truncate">{{ friend.display_name }}</p>
+                    <p class="text-[10px] text-gray-500">@{{ friend.username }}</p>
+                </div>
+            </a>
+            {% else %}
+            <div class="col-span-full py-12 text-center opacity-50 card-glass bg-transparent border-dashed">
+                <i class="fas fa-user-friends text-4xl mb-3 block"></i>
+                <p>No friends yet. Start connecting!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

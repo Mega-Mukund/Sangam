@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto pb-10 mt-4">
+    <div class="flex justify-between items-center mb-6 px-2">
+        <h2 class="text-2xl font-bold dark:text-white">Direct Messages</h2>
+    </div>
+
+    <!-- Users List -->
+    <div class="space-y-4">
+        {% for u in users %}
+        <div class="card-glass p-0 hover:border-violet-400 transition-colors">
+            <a href="{{ url_for('direct_chat', username=u.username) }}" class="flex items-center p-4">
+                <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 dark:border-gray-700">
+                    {% if u.avatar_path %}
+                    <img src="{{ url_for('static', filename='uploads/' + u.avatar_path) }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400 text-sm"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="ml-4 flex-grow">
+                    <h3 class="font-bold text-gray-900 dark:text-white">{{ u.display_name }}</h3>
+                    <p class="text-xs text-gray-500">@{{ u.username }}</p>
+                </div>
+                <div class="text-violet-500 opacity-50"><i class="fas fa-chevron-right text-sm"></i></div>
+            </a>
+        </div>
+        {% else %}
+        <div class="text-center py-20 opacity-60 card-glass">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-gray-400">
+                <i class="fas fa-paper-plane text-violet-400"></i>
+            </div>
+            <h3 class="text-lg font-bold dark:text-white">No messages yet</h3>
+            <p class="text-sm dark:text-gray-300 mt-1">Visit a user's profile to start chatting.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+/* Custom styles for Sangam App */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --app-bg-light: #f3f0fc;
+  --app-bg-dark: #120e1f;
+}
+
+html {
+  font-family: 'Outfit', sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--app-bg-light);
+  color: #1a1a1a;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding-bottom: 5rem; /* Space for bottom nav */
+}
+
+html.dark body {
+  background-color: var(--app-bg-dark);
+  color: #e5e5e5;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+html.dark .glass {
+  background: rgba(30, 20, 50, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Base Card Style */
+.card-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.dark .card-glass {
+  background: rgba(25, 18, 40, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
+}
+
+/* Gradient text */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, #8b5cf6, #c084fc);
+}
+
+/* Bottom Nav Action */
+.nav-item {
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+html.dark .nav-item {
+  color: #9ca3af;
+}
+
+.nav-item:hover, .nav-item.active {
+  color: #8b5cf6;
+  transform: scale(1.1);
+}
+
+html.dark .nav-item.active {
+  color: #a78bfa;
+}
+
+/* General Layout Tweaks */
+.app-container {
+  max-width: 600px; /* Mobile first, single column feed like IG/Reddit */
+  margin: 0 auto;
+}
+
+/* Hide scrollbar for feeds */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+.theme-toggle:hover {
+  transform: rotate(15deg) scale(1.1);
+}
+
+/* Form inputs styling */
+.input-glass {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+html.dark .input-glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+.input-glass:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+html.dark .input-glass:focus {
+  background: rgba(30, 20, 50, 0.9);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Moderation Warning (if needed) */
+.alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Premium Backgrounds & Animations */
+.premium-gradient-bg {
+  background: radial-gradient(circle at top left, rgba(139, 92, 246, 0.15), transparent 40%),
+              radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.15), transparent 40%);
+}
+
+.auth-page-wrapper {
+  background: radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.08), transparent 40%),
+              radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.08), transparent 40%);
+  min-height: calc(100vh - 4rem);
+}
+
+@keyframes pulsate {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.pulsate {
+  animation: pulsate 3s ease-in-out infinite;
+}
+
+.empty-state-card {
+  padding: 4rem 1.5rem;
+  text-align: center;
+  border-style: dashed;
+  border-width: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+

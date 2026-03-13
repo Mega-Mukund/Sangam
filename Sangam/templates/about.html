@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[85vh] py-16 px-4">
+    <div class="card-glass w-full max-w-2xl p-1 shadow-2xl relative overflow-hidden transition-all duration-700" id="about-card">
+        <!-- Inner Border wrapper -->
+        <div class="bg-white/90 dark:bg-black/80 rounded-[0.9rem] p-10 text-center relative z-10">
+            
+            <div id="about-content">
+                <!-- Premium Narayana Image -->
+                <div class="mb-10 group relative inline-block">
+                    <div class="absolute inset-0 bg-violet-500/20 blur-3xl rounded-full scale-110 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <img src="{{ url_for('static', filename='images/narayana.png') }}" 
+                         alt="Lord Narayana" 
+                         class="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-4 border-violet-500/30 object-cover shadow-2xl shadow-violet-500/20 relative z-10 transition-transform duration-500 group-hover:scale-105"
+                         id="lotus-logo-img">
+                </div>
+
+                <div class="space-y-6">
+                    <h2 class="text-5xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 animate-gradient-x mb-4">
+                        SANGAM
+                    </h2>
+                    
+                    <div class="max-w-md mx-auto space-y-4 text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+                        <p class="text-sm italic border-l-4 border-violet-500 pl-4 py-2 bg-violet-500/5 rounded-r-xl">
+                            "Built with Narayana’s blessings for the seekers of connection."
+                        </p>
+                        
+                        <div class="pt-4 text-[13px] text-justify space-y-4">
+                            <p>
+                                <strong class="text-violet-500 uppercase tracking-widest text-[10px]">The Concept</strong><br>
+                                Sangam is more than a social network; it is a **Digital Mandala**—a geometric representation of the social cosmos. 
+                                It seeks to unify fragmented digital identities into a cohesive flow of shared consciousness.
+                            </p>
+                            <p>
+                                <strong class="text-fuchsia-500 uppercase tracking-widest text-[10px]">The Engine</strong><br>
+                                Powered by **Social Gravity**, our Interest Map visualizes the weight of your thoughts. 
+                                Every hashtag contributes to your personal and collective "Atmosphere," steering your discovery path through the Venn-spheres of influence.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pt-8 flex flex-col items-center gap-2">
+                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em]">Lead Architect</p>
+                         <p class="text-xl font-black text-gray-900 dark:text-gray-100">Mukund Vetrivel</p>
+                    </div>
+
+                    <!-- Hidden Game Hint -->
+                    <p class="text-[9px] text-gray-300 dark:text-gray-700 mt-10 hover:text-violet-500 transition-colors cursor-default">
+                        Seven taps on the Divine reveal the hidden path...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hidden Game Container (Preserved) -->
+            <div id="game-container" class="hidden relative z-10 flex flex-col items-center">
+                <h3 class="text-2xl font-black mb-6 text-violet-600 tracking-tighter">SNAKE: DIVINE EDITION</h3>
+                <canvas id="snake-game" width="360" height="360" class="bg-black/95 rounded-2xl border-4 border-violet-500/30 shadow-2xl"></canvas>
+                <div class="flex gap-8 mt-6">
+                    <p id="game-score" class="font-black text-violet-500 text-lg uppercase tracking-widest">Score: 0</p>
+                </div>
+                <div class="mt-6 flex gap-4">
+                    <button onclick="resetGame()" class="btn-primary py-2 px-6 rounded-xl text-xs uppercase tracking-widest">Reset</button>
+                    <button onclick="location.reload()" class="bg-gray-100 dark:bg-white/5 py-2 px-6 rounded-xl text-[10px] uppercase font-bold text-gray-500 hover:text-red-500 transition-colors">Exit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="mt-12 flex flex-wrap justify-center gap-6 text-xs font-black uppercase tracking-widest text-gray-400">
+        <a href="{{ url_for('feed') }}" class="hover:text-violet-500 transition-all hover:-translate-y-0.5">Feed</a>
+        <a href="{{ url_for('rooms') }}" class="hover:text-violet-500 transition-all hover:-translate-y-0.5">Rooms</a>
+        <a href="{{ url_for('groups') }}" class="hover:text-violet-500 transition-all hover:-translate-y-0.5">World Group</a>
+    </div>
+</div>
+
+<script>
+    let clickCount = 0;
+    const lotusImg = document.getElementById('lotus-logo-img');
+    const aboutContent = document.getElementById('about-content');
+    const gameContainer = document.getElementById('game-container');
+    const aboutCard = document.getElementById('about-card');
+    
+    lotusImg.onclick = () => {
+        clickCount++;
+        lotusImg.style.transform = `scale(${1 + clickCount * 0.05}) rotate(${clickCount * 10}deg)`;
+        if (clickCount >= 7) {
+            unlockGame();
+        }
+    };
+
+    function unlockGame() {
+        aboutContent.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+        gameContainer.classList.add('animate-scale-in');
+        startSnake();
+    }
+
+    // --- SNAKE GAME LOGIC (Restored & Enhanced) ---
+    let canvas, ctx;
+    let snake, food, dx, dy, score, gameLoop;
+    let box = 18;
+
+    function startSnake() {
+        canvas = document.getElementById('snake-game');
+        ctx = canvas.getContext('2d');
+        resetGame();
+        if (gameLoop) clearInterval(gameLoop);
+        gameLoop = setInterval(draw, 90);
+        window.addEventListener('keydown', changeDirection);
+    }
+
+    function resetGame() {
+        snake = [{x: 10 * box, y: 10 * box}, {x: 9 * box, y: 10 * box}, {x: 8 * box, y: 10 * box}];
+        food = {
+            x: Math.floor(Math.random() * 19 + 1) * box,
+            y: Math.floor(Math.random() * 19 + 1) * box
+        };
+        dx = box; dy = 0; score = 0;
+        document.getElementById('game-score').innerText = "Score: " + score;
+    }
+
+    function changeDirection(event) {
+        const LEFT_KEY = 37, UP_KEY = 38, RIGHT_KEY = 39, DOWN_KEY = 40;
+        const keyPressed = event.keyCode;
+        const goingUp = dy === -box, goingDown = dy === box, goingRight = dx === box, goingLeft = dx === -box;
+
+        if (keyPressed === LEFT_KEY && !goingRight) { dx = -box; dy = 0; }
+        if (keyPressed === UP_KEY && !goingDown) { dx = 0; dy = -box; }
+        if (keyPressed === RIGHT_KEY && !goingLeft) { dx = box; dy = 0; }
+        if (keyPressed === DOWN_KEY && !goingUp) { dx = 0; dy = box; }
+    }
+
+    function draw() {
+        ctx.fillStyle = "rgba(0,0,0,0.4)"; // Trail effect
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Food
+        ctx.fillStyle = "#D946EF";
+        ctx.beginPath();
+        ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI*2);
+        ctx.fill();
+
+        // Move Snake
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+            score += 10;
+            document.getElementById('game-score').innerText = "Score: " + score;
+            food = {
+                x: Math.floor(Math.random() * 19 + 1) * box,
+                y: Math.floor(Math.random() * 19 + 1) * box
+            };
+        } else {
+            snake.pop();
+        }
+
+        if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height || collision(head, snake)) {
+            resetGame();
+        }
+
+        snake.forEach((part, index) => {
+            ctx.fillStyle = index === 0 ? "#8B5CF6" : "rgba(139, 92, 246, " + (1 - index/snake.length) + ")";
+            ctx.shadowBlur = index === 0 ? 15 : 0;
+            ctx.shadowColor = "#8B5CF6";
+            ctx.fillRect(part.x, part.y, box-1, box-1);
+        });
+    }
+
+    function collision(head, array) {
+        for(let i = 1; i < array.length; i++) {
+            if(head.x === array[i].x && head.y === array[i].y) return true;
+        }
+        return false;
+    }
+</script>
+
+<style>
+    @keyframes gradient-x {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    .animate-gradient-x {
+        background-size: 200% 200%;
+        animation: gradient-x 5s ease infinite;
+    }
+    .animate-scale-in {
+        animation: scale-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes scale-in {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+{% endblock %}

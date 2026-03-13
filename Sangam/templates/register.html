@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4">
+    <div class="card-glass w-full max-w-lg p-10 space-y-8 relative overflow-hidden">
+        <!-- Security Badge -->
+        <div class="absolute top-4 right-4 text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            <i class="fas fa-shield-alt"></i> SSL 256-Bit Encrypted
+        </div>
+
+        <div class="text-center space-y-2">
+            <h2 class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-500">Initiate Onboarding</h2>
+            <p class="text-gray-500 dark:text-gray-400 font-medium italic text-sm">Join the network of hyper-connected minds.</p>
+        </div>
+        
+        <form action="{{ url_for('register') }}" method="POST" class="space-y-6">
+            <!-- Layers of Identity -->
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            
+            <div class="space-y-4">
+                <div class="relative group">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-violet-500 ml-1 mb-1 block">Full Display Name</label>
+                    <input type="text" name="display_name" required 
+                           class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-violet-500 outline-none transition-all group-hover:border-violet-200 dark:group-hover:border-violet-900/30"
+                           placeholder="How the world sees you...">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative group">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Username</label>
+                        <input type="text" name="username" required 
+                               class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-violet-500 outline-none transition-all"
+                               placeholder="@username">
+                    </div>
+                    <div class="relative group">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Passphrase</label>
+                        <input type="password" name="password" required 
+                               class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-violet-500 outline-none transition-all"
+                               placeholder="********">
+                    </div>
+                </div>
+
+                <!-- ENRICHMENT LAYER (Requested: More Details) -->
+                <div class="pt-4 border-t border-dashed border-gray-100 dark:border-white/5">
+                    <p class="text-[10px] font-black text-fuchsia-500 uppercase tracking-widest mb-4">Identity Intelligence Layer</p>
+                    
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Current Occupation / Mission</label>
+                            <input type="text" name="occupation" 
+                                   class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-fuchsia-500 outline-none transition-all"
+                                   placeholder="e.g. Neural Architect, Digital Nomad...">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="relative group">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Primary Hobbies</label>
+                                <input type="text" name="hobbies" 
+                                       class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-fuchsia-500 outline-none transition-all"
+                                       placeholder="Art, Code, Travel...">
+                            </div>
+                            <div class="relative group">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1 block">Geospatial Origin</label>
+                                <input type="text" name="location" 
+                                       class="w-full bg-white/50 dark:bg-black/20 border-2 border-gray-100 dark:border-white/5 p-4 rounded-2xl focus:border-fuchsia-500 outline-none transition-all"
+                                       placeholder="City, Country">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-1 transition-all uppercase tracking-[0.2em] text-xs">
+                Seal Identity
+            </button>
+        </form>
+
+        <div class="text-center pt-4">
+            <p class="text-gray-400 text-xs font-bold">Already identified? 
+                <a href="{{ url_for('login') }}" class="text-violet-500 hover:text-fuchsia-500 underline underline-offset-4 transition-colors">Recall Session</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

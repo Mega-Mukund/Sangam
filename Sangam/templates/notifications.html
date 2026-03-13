@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto pb-10">
+    <div class="flex items-center justify-between mb-8 px-2 mt-4">
+        <h2 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-500">
+            Notifications
+        </h2>
+    </div>
+
+    <div class="space-y-3">
+        {% for n in notifications %}
+        <div class="card-glass p-4 flex items-center gap-4 {% if n.is_read == 0 %}border-violet-400 bg-violet-50/10{% endif %} group transition-all">
+            <div class="w-12 h-12 rounded-full overflow-hidden shrink-0 border-2 border-white dark:border-gray-800 shadow-sm">
+                {% if n.sender_avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + n.sender_avatar) }}" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="flex-grow">
+                <p class="text-sm dark:text-gray-200">
+                    <a href="{{ url_for('profile', username=n.sender_username) }}" class="font-bold hover:text-violet-500 transition-colors">{{ n.sender_name }}</a>
+                    {% if n.type == 'mention' %}
+                        mentioned you in a <a href="{{ url_for('post_detail', post_id=n.target_id) }}" class="text-violet-500 font-medium hover:underline">post</a>.
+                    {% elif n.type == 'blog_mention' %}
+                        mentioned you in a <a href="{{ url_for('blog_detail', blog_id=n.target_id) }}" class="text-violet-500 font-medium hover:underline">blog story</a>.
+                    {% elif n.type == 'friend_request' %}
+                        sent you a <a href="{{ url_for('friends') }}" class="text-violet-500 font-medium hover:underline">friend request</a>.
+                    {% elif n.type == 'friend_accept' %}
+                        accepted your <a href="{{ url_for('profile', username=n.sender_username) }}" class="text-violet-500 font-medium hover:underline">friend request</a>.
+                    {% endif %}
+                </p>
+                <p class="text-[10px] text-gray-500 mt-1">{{ n.created_at | humanize }}</p>
+            </div>
+            
+            {% if n.is_read == 0 %}
+            <div class="w-2 h-2 rounded-full bg-violet-500 shrink-0"></div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card-glass py-20 text-center opacity-60 border-dashed">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-gray-400">
+                <i class="fas fa-bell-slash"></i>
+            </div>
+            <h3 class="text-lg font-bold dark:text-white">All caught up!</h3>
+            <p class="text-sm dark:text-gray-400 mt-1">New notifications will appear here.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

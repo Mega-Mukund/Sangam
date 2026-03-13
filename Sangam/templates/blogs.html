@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto pb-10">
+    <div class="flex justify-between items-center mb-6 px-2 mt-4">
+        <div>
+            <h2 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-500">
+                Community Blogs
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Discover longer stories and articles.</p>
+        </div>
+        <a href="{{ url_for('create_blog') }}" class="btn-primary flex items-center gap-2">
+            <i class="fas fa-pen-nib"></i> Write
+        </a>
+    </div>
+
+    <!-- Blogs Stream -->
+    <div class="space-y-6">
+        {% for blog in blogs %}
+        <div class="card-glass p-0 overflow-hidden group hover:border-violet-300 dark:hover:border-violet-700 transition-colors duration-300">
+            <!-- Author info -->
+            <div class="p-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+                <a href="{{ url_for('profile', username=blog.username) }}" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 p-[2px]">
+                        {% if blog.avatar_path %}
+                            <img src="{{ url_for('static', filename='uploads/' + blog.avatar_path) }}" class="w-full h-full rounded-full object-cover border-2 border-white dark:border-gray-900" alt="avatar">
+                        {% else %}
+                            <div class="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-white dark:border-gray-900">
+                                <i class="fas fa-user text-gray-400 text-sm"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-900 dark:text-white group-hover:text-violet-500 transition-colors">{{ blog.display_name }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">@{{ blog.username }} • {{ blog.created_at | humanize }}</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Blog Meta and Teaser -->
+            <a href="{{ url_for('blog_detail', blog_id=blog.id) }}" class="block p-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                <h3 class="text-2xl font-bold dark:text-white mb-2 leading-tight">{{ blog.title }}</h3>
+                
+                {% if blog.media_path %}
+                    <div class="mb-4">
+                        {% if blog.media_path.endswith('.mp4') %}
+                            <video class="w-full rounded-xl max-h-64 object-cover bg-black/5">
+                                <source src="{{ url_for('static', filename='uploads/' + blog.media_path) }}" type="video/mp4">
+                            </video>
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/' + blog.media_path) }}" loading="lazy" class="w-full rounded-xl max-h-64 object-cover border border-gray-100 dark:border-white/5" alt="Blog hero media">
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <!-- Snippet generation: strip HTML tags roughly to give a text snippet -->
+                <p class="text-gray-600 dark:text-gray-300 text-sm line-clamp-3">
+                    {{ blog.content | striptags }}
+                </p>
+                
+                <div class="mt-4 text-violet-500 text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
+                    Read Article <i class="fas fa-arrow-right"></i>
+                </div>
+            </a>
+
+            <!-- Actions Bar -->
+            <div class="bg-gray-50 dark:bg-black/20 p-3 flex items-center justify-between text-gray-500 dark:text-gray-400 text-sm">
+                <a href="{{ url_for('blog_detail', blog_id=blog.id) }}#comments" class="flex items-center gap-2 hover:text-violet-500 transition-colors">
+                    <i class="far fa-comment-dots text-lg"></i>
+                    <span class="font-medium">{{ blog.comment_count }} comments</span>
+                </a>
+                <button class="hover:text-violet-500 transition-colors p-2" onclick="navigator.clipboard.writeText('{{ request.url_root }}blog/{{ blog.id }}'); alert('Link copied to clipboard!');">
+                    <i class="fas fa-share-nodes"></i>
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-20 opacity-50 card-glass">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-violet-400">
+                <i class="fas fa-feather-alt"></i>
+            </div>
+            <h3 class="text-lg font-bold dark:text-white">No blogs yet</h3>
+            <p class="dark:text-gray-300 mt-1 mb-4">You could be the first to publish an article.</p>
+            <a href="{{ url_for('create_blog') }}" class="btn-primary mt-2 inline-block">Write a Blog</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
